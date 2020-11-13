@@ -1,1 +1,1 @@
-nest-clone
+1. react + nest js 를 활용하여  todo + 로그인 + 회원가입 만들기
