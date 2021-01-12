@@ -8,6 +8,7 @@ import { IsEnum, IsString } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { BeforeInsert, Column, Entity } from 'typeorm';
 import * as bcrpyt from 'bcrypt';
+import { InternalServerErrorException } from '@nestjs/common';
 
 enum UserRole {
   Client,
@@ -37,7 +38,24 @@ export class User extends CoreEntity {
   role: UserRole;
 
   @BeforeInsert()
-  async hassPassword(): Promise<void> {}
+  async hashPassword(): Promise<void> {
+    try {
+      this.password = await bcrpyt.hash(this.password, 10);
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async checkPassword(inputPassword: string): Promise<boolean> {
+    try {
+      const ok = bcrpyt.compare(inputPassword, this.password);
+      return ok;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
+    }
+  }
 }
 /* 
 Listener는 기본적으로 나의 Entity에 무슨 일이 생길 때 실행되는 것
