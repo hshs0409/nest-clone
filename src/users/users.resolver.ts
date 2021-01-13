@@ -1,4 +1,7 @@
+import { UseGuards } from '@nestjs/common';
 import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
+import { AuthUser } from 'src/auth/auth-user.decorator';
+import { AuthGuard } from 'src/auth/auth.guard';
 import { CoreOutput } from 'src/common/dtos/output.dto';
 import {
   CreateAccountInput,
@@ -14,8 +17,9 @@ export class UsersResolver {
 
   // 로그인 된 유저를 확인해주는 쿼리
   @Query(returns => User)
-  confirmUser(@Context() context) {
-    console.log(context);
+  @UseGuards(AuthGuard)
+  confirmUser(@AuthUser() authUser: User) {
+    return authUser;
   }
 
   @Mutation(returns => CreateAccountOutput)

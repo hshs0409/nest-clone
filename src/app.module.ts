@@ -33,7 +33,7 @@ import { AuthModule } from './auth/auth.module';
       // autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       autoSchemaFile: true,
       //gql 모듈이 Query 와 Resolver를 찾는다. => Schema 생성을 위해
-      context: ({ req }) => ({ user: req['user'] }),
+      context: ({ req }) => ({ user: req['user'] }), // gql의 모든 resolver에게 정보를 보낼 수 있는 property
     }),
     UsersModule,
     JwtModule.forRoot({
