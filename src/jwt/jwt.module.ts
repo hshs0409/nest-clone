@@ -1,5 +1,4 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
 import { CONFIG_OPTOINS } from './jwt.constants';
 import { JwtModuleOptions } from './jwt.interfaces';
 import { JwtService } from './jwt.service';

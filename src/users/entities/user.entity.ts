@@ -6,8 +6,8 @@ import {
 } from '@nestjs/graphql';
 import { IsEnum, IsString } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
-import { BeforeInsert, Column, Entity } from 'typeorm';
-import * as bcrpyt from 'bcrypt';
+import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
 
 enum UserRole {
@@ -38,9 +38,10 @@ export class User extends CoreEntity {
   role: UserRole;
 
   @BeforeInsert()
+  @BeforeUpdate()
   async hashPassword(): Promise<void> {
     try {
-      this.password = await bcrpyt.hash(this.password, 10);
+      this.password = await bcrypt.hash(this.password, 10);
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
@@ -49,7 +50,7 @@ export class User extends CoreEntity {
 
   async checkPassword(inputPassword: string): Promise<boolean> {
     try {
-      const ok = bcrpyt.compare(inputPassword, this.password);
+      const ok = bcrypt.compare(inputPassword, this.password);
       return ok;
     } catch (error) {
       console.log(error);
@@ -67,5 +68,5 @@ Entity를 load 할 때마다, load한 다음에 무언가 실행
 BeforeInsert
 Entity가 Insert 되기 전에 무언가를 실행
 
-bcrpyt는 hash하고 hash를 확인하는 데 사용 default saltOrRounds = 10
+bcrypt는 hash하고 hash를 확인하는 데 사용 default saltOrRounds = 10
 */

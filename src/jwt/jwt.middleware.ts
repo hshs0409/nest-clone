@@ -19,7 +19,9 @@ export class JwtMiddleware implements NestMiddleware {
           const user = await this.usersService.findById(decoded['id']); // 누군지 찾는다
           req['user'] = user; // req를 graphql resolver에 전달해줘야 한다.
         }
-      } catch (error) {}
+      } catch (error) {
+        console.log(error);
+      }
     }
     next();
   }

@@ -2,13 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CoreOutput } from 'src/common/dtos/output.dto';
 import { Repository } from 'typeorm';
-import * as jwt from 'jsonwebtoken';
 import { CreateAccountInput } from './dtos/create-account.dto';
 import { LoginInPut, LoginOutput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
 import { JwtService } from 'src/jwt/jwt.service';
-
-const SECRET_KEY = 'e6wsKL4US4oGV330uFQJfcHcZRyrk4Be';
+import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,11 +15,7 @@ export class UsersService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async createAccount({
-    email,
-    password,
-    role,
-  }: CreateAccountInput): Promise<CoreOutput> {
+  async createAccount({ email, password, role }: CreateAccountInput): Promise<CoreOutput> {
     try {
       const exists = await this.userRepository.findOne({ email });
       if (exists) {
@@ -30,9 +24,7 @@ export class UsersService {
           error: `User ${email} already exist`,
         };
       }
-      await this.userRepository.save(
-        this.userRepository.create({ email, password, role }),
-      );
+      await this.userRepository.save(this.userRepository.create({ email, password, role }));
       return {
         ok: true,
       };
@@ -75,6 +67,27 @@ export class UsersService {
 
   async findById(id: number): Promise<User> {
     return this.userRepository.findOne({ id });
+  }
+
+  async userProfile({ userId }: UserProfileInput): Promise<UserProfileOutput> {
+    try {
+      const user = await this.userRepository.findOne(userId);
+      if (!user) {
+        return {
+          ok: false,
+          error: 'User Not Found',
+        };
+      }
+      return {
+        ok: true,
+        user,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: `Can't find user`,
+      };
+    }
   }
 }
 

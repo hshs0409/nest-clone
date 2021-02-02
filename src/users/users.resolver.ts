@@ -3,11 +3,9 @@ import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CoreOutput } from 'src/common/dtos/output.dto';
-import {
-  CreateAccountInput,
-  CreateAccountOutput,
-} from './dtos/create-account.dto';
+import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
 import { LoginInPut, LoginOutput } from './dtos/login.dto';
+import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -23,15 +21,18 @@ export class UsersResolver {
   }
 
   @Mutation(returns => CreateAccountOutput)
-  createAccount(
-    @Args('input') createAccountInput: CreateAccountInput,
-  ): Promise<CoreOutput> {
+  createAccount(@Args('input') createAccountInput: CreateAccountInput): Promise<CoreOutput> {
     return this.usersService.createAccount(createAccountInput);
   }
 
   @Mutation(returns => LoginOutput)
   login(@Args('input') loginInput: LoginInPut): Promise<LoginOutput> {
     return this.usersService.login(loginInput);
+  }
+
+  @Mutation(returns => UserProfileOutput)
+  userProfile(@Args() userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
+    return this.usersService.userProfile(userProfileInput);
   }
 }
 

@@ -1,14 +1,9 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import * as Joi from 'joi';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
-import { CommonModule } from './common/common.module';
 import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
@@ -18,15 +13,29 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, //어디서나 접근가능,
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('dev', 'test', 'prod').required(),
+        DB_HOST: Joi.string().required(),
+        DB_PORT: Joi.string().required(),
+        DB_USERNAME: Joi.string().required(),
+        DB_PASSWORD: Joi.string().required(),
+        DB_NAME: Joi.string().required(),
+      }),
+      envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test', // env File 경로
+      ignoreEnvFile: process.env.NODE_ENV === 'prod', // deploy시 prod 사용
       // envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test', // env 파일 경로 ( test, pord, dev )
       // ignoreEnvFile: true, // process.env.NODE_ENV === 'prod', deploy할 때 env 파일 사용하지 않는 것
     }),
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'db',
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: +process.env.DB_PORT,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      synchronize: process.env.NODE_ENV !== 'prod', //process.env.NODE_ENV !== 'prod',
+      logging: process.env.NODE_ENV !== 'prod', // process.env.NODE_ENV !== 'prod',  DB에서 돌아가는 로그 확인 prod이면 확인 x
       entities: [User],
-      synchronize: true, //process.env.NODE_ENV !== 'prod',
-      logging: true, // process.env.NODE_ENV !== 'prod',  DB에서 돌아가는 로그 확인 prod이면 확인 x
     }),
     GraphQLModule.forRoot({
       // 해당 부분 true로 해주면 메모리에 저장, join 해주면 schema.gql 파일 생성
@@ -34,11 +43,12 @@ import { AuthModule } from './auth/auth.module';
       autoSchemaFile: true,
       //gql 모듈이 Query 와 Resolver를 찾는다. => Schema 생성을 위해
       context: ({ req }) => ({ user: req['user'] }), // gql의 모든 resolver에게 정보를 보낼 수 있는 property
+      // jwt middleware를 먼저 거치고 gql context에 req['user']를 보낸다.
+    }),
+    JwtModule.forRoot({
+      privateKey: process.env.PRIVATE_KEY,
     }),
     UsersModule,
-    JwtModule.forRoot({
-      privateKey: 'e6wsKL4US4oGV330uFQJfcHcZRyrk4Be',
-    }),
     AuthModule,
   ],
   controllers: [],
