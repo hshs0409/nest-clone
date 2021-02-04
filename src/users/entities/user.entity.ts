@@ -1,9 +1,4 @@
-import {
-  Field,
-  InputType,
-  ObjectType,
-  registerEnumType,
-} from '@nestjs/graphql';
+import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { IsEnum, IsString } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
@@ -23,12 +18,12 @@ registerEnumType(UserRole, { name: 'UserRole' });
 @Entity()
 export class User extends CoreEntity {
   @Field(type => String)
-  @Column()
+  @Column({ unique: true })
   @IsString()
   email: string;
 
   @Field(type => String)
-  @Column()
+  @Column({ select: false })
   @IsString()
   password: string;
 
@@ -69,4 +64,17 @@ BeforeInsert
 Entity가 Insert 되기 전에 무언가를 실행
 
 bcrypt는 hash하고 hash를 확인하는 데 사용 default saltOrRounds = 10
+
+* ON DELETE SET NULL
+* ON UPDATE SET NULL
+옵션 SET NULL -> 부모테이블에서 primary 값이 수정 또는 삭제될 경우
+하위테이블의 reference값은 존재할 수 없습니다. 옵션이 없을 경우는 에러가 발생하고 옵션 SET NULL 로 정의되면 하위테이블의 reference값이  NULL 값으로 변경되면서 참조무결성을 유지합니다.
+
+* ON UPDATE CASCADE
+옵션 CASCADE -> 부모테이블에서 primary 값이 수정될 경우
+옵션 CASCADE 로 정의되면 하위테이블의 reference값은 변경된 상위테이블의 수정된 값을 가지면서 참조무결성을 유지합니다.
+
+* ON DELETE CASCADE
+옵션 CASCADE -> 부모테이블에서 primary 값이 삭제될 경우
+옵션 CASCADE 로 정의되면 하위테이블의 reference값은 삭제되면서 참조무결성을 유지합니다.
 */

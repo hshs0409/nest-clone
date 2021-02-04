@@ -7,6 +7,8 @@ import { LoginInPut, LoginOutput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
 import { JwtService } from 'src/jwt/jwt.service';
 import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
+import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
+import { UV_FS_O_FILEMAP } from 'constants';
 
 @Injectable()
 export class UsersService {
@@ -38,7 +40,8 @@ export class UsersService {
 
   async login({ email, password }: LoginInPut): Promise<LoginOutput> {
     try {
-      const user = await this.userRepository.findOne({ email });
+      const user = await this.userRepository.findOne({ email }, { select: ['id', 'password'] });
+      console.log(user);
       if (!user) {
         return {
           ok: false,
@@ -58,6 +61,7 @@ export class UsersService {
         token,
       };
     } catch (error) {
+      console.log(error);
       return {
         ok: false,
         error: `Can't not login`,
@@ -86,6 +90,36 @@ export class UsersService {
       return {
         ok: false,
         error: `Can't find user`,
+      };
+    }
+  }
+
+  async editProfile(
+    userId: number,
+    editProfileInput: EditProfileInput,
+  ): Promise<EditProfileOutput> {
+    try {
+      const user = await this.userRepository.findOne(userId);
+      if (!user) {
+        return {
+          ok: false,
+          error: `User not found`,
+        };
+      }
+      if (editProfileInput.email) {
+        user.email = editProfileInput.email;
+      }
+      if (editProfileInput.password) {
+        user.password = editProfileInput.password;
+      }
+      await this.userRepository.save(user);
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: `Can't edit profile`,
       };
     }
   }

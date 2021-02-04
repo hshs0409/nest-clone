@@ -4,6 +4,7 @@ import { AuthUser } from 'src/auth/auth-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CoreOutput } from 'src/common/dtos/output.dto';
 import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
+import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
 import { LoginInPut, LoginOutput } from './dtos/login.dto';
 import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
 import { User } from './entities/user.entity';
@@ -31,8 +32,18 @@ export class UsersResolver {
   }
 
   @Mutation(returns => UserProfileOutput)
+  @UseGuards(AuthGuard)
   userProfile(@Args() userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
     return this.usersService.userProfile(userProfileInput);
+  }
+
+  @Mutation(returns => EditProfileOutput)
+  @UseGuards(AuthGuard)
+  editProfile(
+    @AuthUser() authUser: User,
+    @Args('input') editProfileInput: EditProfileInput,
+  ): Promise<EditProfileOutput> {
+    return this.usersService.editProfile(authUser.id, editProfileInput);
   }
 }
 

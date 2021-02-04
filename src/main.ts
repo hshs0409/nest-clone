@@ -6,6 +6,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   // class transformer를 통해 데이터의 유효성 체크 가능
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(3001);
+  await app.listen(3000);
 }
 bootstrap();
