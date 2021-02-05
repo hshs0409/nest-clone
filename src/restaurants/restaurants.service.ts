@@ -1,43 +1,43 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
-import { CreateRestaurantDto } from './dtos/create-restaurant.dto';
-import { UpdateRestaurantDto } from './dtos/update-restaurant.dto';
+import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
 import { Restaurant } from './entities/restaurant.entity';
+import { CategoryRepository } from './repositories/category.repository';
 
 @Injectable()
 export class RestaurantsService {
   constructor(
     @InjectRepository(Restaurant) // Entity만 넣어준다.
     private readonly resaturants: Repository<Restaurant>, //restaurants는 Restaurant Entity의 Repository
+    private readonly categories: CategoryRepository,
   ) {}
 
-  async getAll(): Promise<Restaurant[]> {
-    return this.resaturants.find();
-  }
-
   async createRestaurant(
-    createRestaurantDto: CreateRestaurantDto,
-  ): Promise<boolean> {
+    owner: User,
+    createRestaurantInput: CreateRestaurantInput,
+  ): Promise<CreateRestaurantOutput> {
     try {
-      const newRestaurant = this.resaturants.create(createRestaurantDto);
+      const newRestaurant = this.resaturants.create(createRestaurantInput);
+      newRestaurant.owner = owner;
+      const category = await this.categories.getOrCreate(createRestaurantInput.categoryName);
+      newRestaurant.category = category;
       await this.resaturants.save(newRestaurant);
-      return true;
+      return {
+        ok: true,
+      };
     } catch (error) {
-      return false;
+      console.log(error);
+      return {
+        ok: false,
+        error: `Can't find Restaurant`,
+      };
     }
   }
+}
 
-  async updateRestaurant({ id, data }: UpdateRestaurantDto): Promise<boolean> {
-    try {
-      this.resaturants.update(id, { ...data });
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  /*
+/*
   typeORM function 비교
 
   create
@@ -48,5 +48,7 @@ export class RestaurantsService {
 
   update
   Entity가 있던 없던 update 해주고 없어도 Error X
+  update하고 싶을때는 배열을 넣어줘야한다. save definition을 보면 entity배열이기 때문
+  save에서 id를 보내주지 않을 경우 새로운 entity를 생성한다.
+  id를 보내주면 typeorm이 해당 entity를 찾아 update
   */
-}

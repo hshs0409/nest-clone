@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
-import { CreateRestaurantDto } from './dtos/create-restaurant.dto';
-import { UpdateRestaurantDto } from './dtos/update-restaurant.dto';
+import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { AuthUser } from 'src/auth/auth-user.decorator';
+import { Role } from 'src/auth/role.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
 import { Restaurant } from './entities/restaurant.entity';
 import { RestaurantsService } from './restaurants.service';
 
@@ -14,39 +15,14 @@ export class RestaurantResolver {
   // 첫 번째 arg로 function이 필요하다.
 
   // returns는 별 의미 x ()=> 도 상관 x
-  @Query(returns => Boolean)
-  isPizzaGood(): boolean {
-    return true;
-  }
 
-  @Query(returns => [Restaurant])
-  restaurants(): Promise<Restaurant[]> {
-    //args는 gql을 위한 것 변수는 func을 위한 것 결국 필요한 것을 요청해야 한다.
-    return this.restaurantsService.getAll();
-  }
-
-  //   @Mutation((returns) => Boolean)
-  //   createRestaurant(
-  //     @Args('name') name: string,
-  //     @Args('isVegan') isVegan: boolean,
-  //     @Args('address') address: string,
-  //     @Args('ownerName') ownerName: string,
-  //   ): boolean {
-  //     return true;
-  //   }
-
-  @Mutation(returns => Boolean)
+  @Mutation(returns => CreateRestaurantOutput)
+  @Role(['Owner'])
   async createRestaurant(
-    @Args('iuput') createRestaurantDto: CreateRestaurantDto,
-  ): Promise<boolean> {
-    return this.restaurantsService.createRestaurant(createRestaurantDto);
-  }
-
-  @Mutation(returns => Boolean)
-  async updateRestaurant(
-    @Args('iuput') updateRestaurantDto: UpdateRestaurantDto,
-  ): Promise<boolean> {
-    return this.restaurantsService.updateRestaurant(updateRestaurantDto);
+    @AuthUser() authUser: User,
+    @Args('iuput') createRestaurantInput: CreateRestaurantInput,
+  ): Promise<CreateRestaurantOutput> {
+    return this.restaurantsService.createRestaurant(authUser, createRestaurantInput);
   }
 }
 

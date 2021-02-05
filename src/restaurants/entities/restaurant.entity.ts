@@ -18,39 +18,44 @@ Entity랑 실제로 상호작용하는 레포지토리만 추가적으로 필요
 */
 
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { IsBoolean, IsOptional } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { IsString } from 'class-validator';
+import { CoreEntity } from 'src/common/entities/core.entity';
+import { User } from 'src/users/entities/user.entity';
+import { Column, Entity, ManyToOne } from 'typeorm';
+import { Category } from './category.entity';
 
 // Entity에서 GraphQL, typeORM(Entity), Dto 모두 만들 수 있다. Dto=> Mapped Types 이용
 
 @InputType('RestaurantInputType', { isAbstract: true }) // isAbstract => Schema Type으로 쓰지 않는다. 스키마는 유일한 이름의 Type을 가져야 하기 때문
 @ObjectType() // 자동으로 스키마를 빌드하기 위해 사용하는 gql decorator // GQL에서 받아온 타입
 @Entity() // typeORM 부분
-export class Restaurant {
-  @PrimaryGeneratedColumn()
-  @Field(type => Number)
-  id: number;
-
+export class Restaurant extends CoreEntity {
   @Field(type => String) // returnTypeFunction으로 첫 번째 arg로써 function을 요청한다. _ => (),  =>  아무거나 상관 x
-  @Column()
+  @Column({ unique: true })
+  @IsString()
   name: string;
 
-  //defaultValue
-  @Field(type => Boolean, { nullable: true }) // defaultValue => field를 정의하지 않는 이상 TRUE, nullable
-  @Column({ default: true })
-  @IsOptional() // 해당 필드를 보내거나 보내지 않을 수 있다.
-  @IsBoolean()
-  isVegan: boolean;
-
-  @Field(type => String, { defaultValue: '강남' })
+  @Field(type => String)
   @Column()
+  @IsString()
   address: string;
 
   @Field(type => String)
   @Column()
-  ownerName: string;
+  @IsString()
+  coverImg: string;
 
-  @Field(type => String)
-  @Column()
-  categoryName: string;
+  @Field(type => Category, { nullable: true })
+  @ManyToOne(type => Category, category => category.restaurants, {
+    nullable: true,
+    onDelete: 'SET NULL',
+    eager: true,
+  })
+  category: Category;
+
+  @Field(type => User)
+  @ManyToOne(type => User, user => user.restaurants, {
+    onDelete: 'CASCADE',
+  })
+  owner: User;
 }

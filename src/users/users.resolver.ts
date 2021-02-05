@@ -2,6 +2,7 @@ import { UseGuards } from '@nestjs/common';
 import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { Role } from 'src/auth/role.decorator';
 import { CoreOutput } from 'src/common/dtos/output.dto';
 import { CreateAccountInput, CreateAccountOutput } from './dtos/create-account.dto';
 import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
@@ -16,7 +17,7 @@ export class UsersResolver {
 
   // 로그인 된 유저를 확인해주는 쿼리
   @Query(returns => User)
-  @UseGuards(AuthGuard)
+  @Role(['Any'])
   confirmUser(@AuthUser() authUser: User) {
     return authUser;
   }
@@ -32,13 +33,14 @@ export class UsersResolver {
   }
 
   @Mutation(returns => UserProfileOutput)
+  @Role(['Any'])
   @UseGuards(AuthGuard)
   userProfile(@Args() userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
     return this.usersService.userProfile(userProfileInput);
   }
 
   @Mutation(returns => EditProfileOutput)
-  @UseGuards(AuthGuard)
+  @Role(['Any'])
   editProfile(
     @AuthUser() authUser: User,
     @Args('input') editProfileInput: EditProfileInput,

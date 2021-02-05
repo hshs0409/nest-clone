@@ -8,6 +8,9 @@ import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
+import { RestaurantsModule } from './restaurants/restaurants.module';
+import { Restaurant } from './restaurants/entities/restaurant.entity';
+import { Category } from './restaurants/entities/category.entity';
 
 @Module({
   imports: [
@@ -35,7 +38,7 @@ import { AuthModule } from './auth/auth.module';
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== 'prod', //process.env.NODE_ENV !== 'prod',
       logging: process.env.NODE_ENV !== 'prod', // process.env.NODE_ENV !== 'prod',  DB에서 돌아가는 로그 확인 prod이면 확인 x
-      entities: [User],
+      entities: [User, Restaurant, Category],
     }),
     GraphQLModule.forRoot({
       // 해당 부분 true로 해주면 메모리에 저장, join 해주면 schema.gql 파일 생성
@@ -50,6 +53,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     UsersModule,
     AuthModule,
+    RestaurantsModule,
   ],
   controllers: [],
   providers: [],
