@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AllCategoriesOutput } from './dtos/allCategories.dto';
+import { AllRestaurantsInput, AllRestaurantsOutput } from './dtos/allRestaurants.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
@@ -10,6 +11,8 @@ import { EditRestaurantInput, EditRestaurantOutput } from './dtos/edit-restauran
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
 import { CategoryRepository } from './repositories/category.repository';
+
+const PAGE_SIZE = 25;
 
 @Injectable()
 export class RestaurantsService {
@@ -132,23 +135,55 @@ export class RestaurantsService {
     return this.resaturants.count({ category });
   }
 
-  async findCategoryBySlug({ slug }: CategoryInput): Promise<CategoryOutput> {
+  async findCategoryBySlug({ slug, page }: CategoryInput): Promise<CategoryOutput> {
     try {
       const category = await this.categories.findOne({ slug }, { relations: ['restaurants'] });
+
       if (!category) {
         return {
           ok: false,
           error: `Category Not Found`,
         };
       }
+      const restaurants = await this.resaturants.find({
+        where: {
+          category,
+        },
+        take: PAGE_SIZE,
+        skip: (page - 1) * PAGE_SIZE,
+      });
+      category.restaurants = restaurants;
+      const totalResults = await this.countRestaurants(category);
       return {
         ok: true,
         category,
+        results: restaurants,
+        totalPages: Math.ceil(totalResults / PAGE_SIZE),
       };
     } catch (error) {
       return {
         ok: false,
         error: `Can't find category by slug`,
+      };
+    }
+  }
+
+  async allRestaurants({ page }: AllRestaurantsInput): Promise<AllRestaurantsOutput> {
+    try {
+      const [restaurants, totalResults] = await this.resaturants.findAndCount({
+        take: PAGE_SIZE,
+        skip: (page - 1) * PAGE_SIZE,
+      });
+      return {
+        ok: true,
+        results: restaurants,
+        totalPages: Math.ceil(totalResults / PAGE_SIZE),
+        totalResults,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: `Can't get all Restaurants`,
       };
     }
   }
