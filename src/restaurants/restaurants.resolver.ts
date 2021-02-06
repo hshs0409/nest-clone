@@ -3,6 +3,7 @@ import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { AllCategoriesOutput } from './dtos/allCategories.dto';
+import { AllRestaurantsInput, AllRestaurantsOutput } from './dtos/allRestaurants.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
@@ -20,6 +21,13 @@ export class RestaurantResolver {
   // 첫 번째 arg로 function이 필요하다.
 
   // returns는 별 의미 x ()=> 도 상관 x
+
+  @Query(returns => AllRestaurantsOutput)
+  allRestaurants(
+    @Args('input') allRestaurantsInput: AllRestaurantsInput,
+  ): Promise<AllRestaurantsOutput> {
+    return this.restaurantsService.allRestaurants(allRestaurantsInput);
+  }
 
   @Mutation(returns => CreateRestaurantOutput)
   @Role(['Owner'])
