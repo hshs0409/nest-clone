@@ -8,6 +8,7 @@ import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-restaurant.dto';
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
 import { EditRestaurantInput, EditRestaurantOutput } from './dtos/edit-restaurant.dto';
+import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
 import { RestaurantsService } from './restaurants.service';
@@ -21,6 +22,11 @@ export class RestaurantResolver {
   // 첫 번째 arg로 function이 필요하다.
 
   // returns는 별 의미 x ()=> 도 상관 x
+
+  @Query(returns => RestaurantOutput)
+  restaurant(@Args('input') restaurantInput: RestaurantInput): Promise<RestaurantOutput> {
+    return this.restaurantsService.findRestaurantById(restaurantInput);
+  }
 
   @Query(returns => AllRestaurantsOutput)
   allRestaurants(
