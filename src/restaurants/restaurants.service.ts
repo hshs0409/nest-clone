@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Raw, Repository } from 'typeorm';
 import { AllCategoriesOutput } from './dtos/allCategories.dto';
 import { AllRestaurantsInput, AllRestaurantsOutput } from './dtos/allRestaurants.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
@@ -9,6 +9,7 @@ import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-res
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
 import { EditRestaurantInput, EditRestaurantOutput } from './dtos/edit-restaurant.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';
+import { SearchRestaurantInput, SearchRestaurantOutput } from './dtos/search-restaurant.dto';
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
 import { CategoryRepository } from './repositories/category.repository';
@@ -206,6 +207,38 @@ export class RestaurantsService {
       return {
         ok: false,
         error: `Can't get all Restaurants`,
+      };
+    }
+  }
+
+  async findRestaurantByName({
+    page,
+    query,
+  }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
+    try {
+      const [restaurants, totalResults] = await this.resaturants.findAndCount({
+        where: {
+          name: Raw(name => `${name} ILIKE '%${query}%'`),
+        },
+        take: PAGE_SIZE,
+        skip: (page - 1) * PAGE_SIZE,
+      });
+      if (!totalResults) {
+        return {
+          ok: false,
+          error: `Restaurants Not Found by Name`,
+        };
+      }
+      return {
+        ok: true,
+        restaurants,
+        totalPages: Math.ceil(totalResults / PAGE_SIZE),
+        totalResults,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: `Can't find restaurant by Name`,
       };
     }
   }

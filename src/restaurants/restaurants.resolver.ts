@@ -9,6 +9,7 @@ import { CreateRestaurantInput, CreateRestaurantOutput } from './dtos/create-res
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from './dtos/delete-restaurant.dto';
 import { EditRestaurantInput, EditRestaurantOutput } from './dtos/edit-restaurant.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';
+import { SearchRestaurantInput, SearchRestaurantOutput } from './dtos/search-restaurant.dto';
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
 import { RestaurantsService } from './restaurants.service';
@@ -33,6 +34,13 @@ export class RestaurantResolver {
     @Args('input') allRestaurantsInput: AllRestaurantsInput,
   ): Promise<AllRestaurantsOutput> {
     return this.restaurantsService.allRestaurants(allRestaurantsInput);
+  }
+
+  @Query(returns => SearchRestaurantOutput)
+  searchRestaurant(
+    @Args('input') searchRestaurantInput: SearchRestaurantInput,
+  ): Promise<SearchRestaurantOutput> {
+    return this.restaurantsService.findRestaurantByName(searchRestaurantInput);
   }
 
   @Mutation(returns => CreateRestaurantOutput)
