@@ -126,6 +126,10 @@ export class RestaurantsService {
       };
     }
   }
+
+  countRestaurants(category: Category): Promise<number> {
+    return this.resaturants.count({ category });
+  }
 }
 
 /*
